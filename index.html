@@ -1,36 +1,114 @@
-// server.js
-const express = require("express");
-const cors = require("cors");
-const fetch = require("node-fetch");
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Virtual Tutor for Kids</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #ffecd1;
+      margin: 0;
+    }
+    .tutor-container {
+      width: 90%;
+      max-width: 400px;
+      padding: 20px;
+      background: #ffd5e5;
+      border-radius: 15px;
+      box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      color: #333;
+    }
+    h2 {
+      color: #ff6f61;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      margin-top: 15px;
+      font-size: 16px;
+      border: 2px solid #ff9a8b;
+      border-radius: 10px;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      background-color: #ff9a8b;
+      color: #fff;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      border-radius: 10px;
+    }
+    button:hover {
+      background-color: #ff6f61;
+    }
+    .answer {
+      margin-top: 20px;
+      font-weight: bold;
+      color: #ff6f61;
+      padding: 15px;
+      background: #fff3e0;
+      border-radius: 10px;
+      border: 1px solid #ff9a8b;
+    }
+  </style>
+</head>
+<body>
+  <div class="tutor-container">
+    <h2>Virtual Tutor</h2>
+    <input type="text" id="question" placeholder="Type your question here...">
+    <button onclick="getAnswer()">Get Answer</button>
+    <div class="answer" id="answer">The answer will appear here!</div>
+  </div>
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+  <script>
+    async function getAnswer() {
+      const question = document.getElementById("question").value.trim();
+      const answerElement = document.getElementById("answer");
 
-const OPENAI_API_KEY = "YOUR_OPENAI_API_KEY_HERE";
+      if (!question) {
+        answerElement.textContent = "Please enter a question!";
+        return;
+      }
 
-app.post("/ask", async (req, res) => {
-  const question = req.body.question;
-  try {
-    const response = await fetch("https://api.openai.com/v1/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: "text-davinci-003",
-        prompt: question,
-        max_tokens: 50
-      })
-    });
+      answerElement.textContent = "Thinking..."; // Display loading message
 
-    const data = await response.json();
-    res.json(data);
-  } catch (error) {
-    res.status(500).json({ error: "Error connecting to OpenAI API" });
-  }
-});
+      // Fetch answer from OpenAI API
+      try {
+        const response = await fetch("https://api.openai.com/v1/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": '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'
+          },
+          body: JSON.stringify({
+            model: "text-davinci-003",
+            prompt: question,
+            max_tokens: 50
+          })
+        });
 
-const PORT = 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+        const data = await response.json();
+        
+        if (response.ok) {
+          answerElement.textContent = data.choices[0].text.trim();
+        } else {
+          answerElement.textContent = "Sorry, I couldn't find an answer.";
+          console.error("Error:", data);
+        }
+      } catch (error) {
+        answerElement.textContent = "There was an error connecting to the server.";
+        console.error("Error:", error);
+      }
+    }
+  </script>
+</body>
+</html>
